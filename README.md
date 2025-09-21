@@ -1,72 +1,120 @@
-# Desafio de Programação: Classificação de Pistas de Pouso em Imagens de Satélite
+# 🌍 Semantic Segmentation – Projeto de Detecção em Imagens de Satélite
 
-Bem-vindo(a) ao desafio de programação! O objetivo é construir uma aplicação capaz de identificar e classificar pistas de pouso em uma imagem de satélite Sentinel-2, com foco na região do sudoeste paraense. Você tem a liberdade de escolher a abordagem tecnológica, seja utilizando o Google Earth Engine (GEE) para processamento em nuvem ou baixando a imagem para processamento local.
-
----
-
-## O Desafio
-
-Seu projeto deve abordar os seguintes pontos:
-
-1.  **Acesso à Imagem Sentinel-2:** Obtenha uma imagem de satélite **Sentinel-2** cobrindo a região do **sudoeste paraense**. Você pode definir as coordenadas exatas ou usar um polígono que represente a área de interesse. A coleta dos dados pode ser feita através da API do Google Earth Engine (`ee`), da biblioteca `xee` (uma extensão do GEE para `xarray`) ou por meio de download direto.
-
-2.  **Pré-processamento (Opcional, mas recomendado):** Se achar necessário, aplique técnicas de pré-processamento na imagem para melhorar a qualidade e facilitar a classificação. Isso pode incluir a remoção de nuvens, correção atmosférica (se não estiver pré-aplicada) ou a criação de índices de vegetação.
-
-3.  **Classificação de Pistas de Pouso:** Desenvolva um algoritmo ou modelo para classificar as áreas que correspondem a pistas de pouso na imagem. A escolha da metodologia é sua desde que seja um segmentador semantico como as redes em forma de U ou até mesmo Transformers como o SwinTransformer.
-
-4.  **Visualização e/ou Exportação:** Apresente os resultados da sua classificação de forma clara. Isso pode ser uma visualização interativa (no GEE ou em uma biblioteca como `folium`), ou a exportação dos resultados para um formato geoespacial padrão, como **GeoJSON** ou **GeoTIFF**, com as áreas classificadas.
+Este projeto implementa um pipeline completo para **segmentação semântica** utilizando imagens de satélite (Sentinel-2).  
+O objetivo é identificar e separar diferentes regiões de interesse em imagens geoespaciais, aplicando **Deep Learning** (U-Net) e ferramentas de visualização e monitoramento de métricas.
 
 ---
 
-## Requisitos Técnicos
+## 📂 Estrutura do Projeto
 
-Você pode usar as seguintes ferramentas, mas sinta-se à vontade para explorar outras:
-
-* **Linguagem de Programação:** **Python** é altamente recomendado devido à vasta gama de bibliotecas geoespaciais e de aprendizado de máquina.
-* **Acesso a Dados:**
-    * **Google Earth Engine (GEE):** Para processamento em nuvem. Use a biblioteca `earthengine-api` ou `xee` para uma interface mais intuitiva.
-* **Bibliotecas Sugeridas:**
-    * `earthengine-api`
-    * `xee` (para integrar o GEE com `xarray`)
-    * `rasterio` e `fiona` (para manipulação de dados geoespaciais)
-    * `scikit-learn` (para modelos de Machine Learning)
-    * `matplotlib` ou `folium` (para visualização)
-    * `geopandas` (para análise de dados vetoriais)
-
----
-
-## Entrega do Projeto
-
-Seu projeto deve ser entregue com os seguintes componentes:
-
-* **Código-fonte:** Todo o código utilizado (scripts Python, notebooks Jupyter, etc.).
-* **Instruções de Execução:** Um guia detalhado explicando como configurar o ambiente e executar seu código.
-* **Resultados:** Uma amostra dos resultados gerados (imagens, mapas, arquivos). Se a visualização for interativa, inclua uma captura de tela ou um GIF.
-* **Documentação:** Um texto breve (pode ser no próprio README) descrevendo a sua abordagem, a metodologia de classificação escolhida, os desafios encontrados e como você os superou.
+```
+initial-challenge-semantic-segmentation/
+│
+├─ data/                     # Pasta de dados (imagens .tif, máscaras, etc.)
+├─ checkpoints/               # Modelos treinados (.pth)
+├─ src/                       # Código-fonte principal
+│   ├─ train.py               # Treinamento do modelo
+│   ├─ infer.py               # Inferência e geração de previsões
+│   ├─ explain.py             # Interpretação com Grad-CAM
+│   ├─ metrics.py             # Funções de avaliação
+│   ├─ utils.py               # Funções auxiliares (pré-processamento, etc.)
+│   └─ models.py              # Definição da arquitetura U-Net
+├─ requirements.txt           # Dependências do projeto
+└─ README.md                  # Este arquivo
+```
 
 ---
 
-## Critérios de Avaliação
+## 🚀 Fluxo do Projeto
 
-O projeto será avaliado com base em:
+### 1️⃣ **Pré-processamento dos Dados**
+As imagens de satélite (GeoTIFF) são carregadas com **Rasterio**, normalizadas e organizadas em tensores PyTorch.  
+Isso garante que o modelo receba dados padronizados para aprendizado.
 
-* **Funcionalidade:** A aplicação executa as tarefas propostas de forma correta e completa.
-* **Qualidade do Código:** Organização, clareza, modularidade e uso de boas práticas de programação.
-* **Escolha da Abordagem:** A justificativa para as ferramentas e métodos utilizados é clara e bem fundamentada.
-* **Documentação:** As instruções e explicações fornecidas são fáceis de entender.
+### 2️⃣ **Modelo – U-Net**
+- A arquitetura escolhida é a **U-Net**, amplamente usada em segmentação de imagens.  
+- Ela possui um **encoder** (extrai características) e um **decoder** (reconstrói a máscara pixel a pixel).
+
+O modelo é definido em `models.py` e pode ser facilmente ajustado para outros datasets ou camadas.
+
+### 3️⃣ **Treinamento (`train.py`)**
+- O treinamento utiliza **PyTorch** para otimização.  
+- As métricas de desempenho, como **IoU** e **F1-Score**, são calculadas em cada época.  
+- A integração com **Weights & Biases (wandb)** registra:
+  - Gráficos de perda (loss)
+  - Métricas de validação
+  - Checkpoints do modelo
+
+Isso permite acompanhar o aprendizado em tempo real e comparar diferentes execuções.
+
+### 4️⃣ **Inferência (`infer.py`)**
+- Carrega o modelo treinado (checkpoint `.pth`) e aplica em novas imagens.
+- Gera máscaras segmentadas salvas como imagens ou arquivos GeoTIFF.
+
+### 5️⃣ **Interpretação com Grad-CAM (`explain.py`)**
+Para entender **quais regiões da imagem influenciam mais as previsões**, usamos o **Grad-CAM**:
+- Destaca áreas críticas para a decisão da rede.
+- Gera um overlay (heatmap) sobre a imagem original.
+- Facilita a análise e explicação do modelo, aumentando a transparência.
 
 ---
 
-## Como Começar
+## 🛠️ Principais Tecnologias
+- **PyTorch** – Treinamento e inferência da rede neural.
+- **Rasterio** – Leitura de imagens geoespaciais.
+- **Weights & Biases (wandb)** – Monitoramento de métricas.
+- **Grad-CAM** – Interpretação visual.
 
-1. **Faça um fork deste repositório.**
+---
 
-2. **Clone o repositório** para sua máquina local.
+## 💡 Possíveis Extensões
+- **Augmentations** (aumentos de dados) para melhorar a robustez.
+- Testes com outras arquiteturas (DeepLab, UNet++).  
+- Geração de dashboards interativos com **Streamlit** ou **Dash**.
 
-3. **Crie um ambiente virtual** (recomendado) e instale as dependências necessárias.
+---
 
-4. **Configure o acesso ao Google Earth Engine** (se for utilizá-lo). Siga as instruções oficiais do GEE para autenticação.
+## ⚡ Como Rodar
 
-5. **Comece a codificar!**
+1️⃣ Instale as dependências:
+```bash
+pip install -r requirements.txt
+```
 
-Boa sorte e divirta-se com o desafio!
+2️⃣ Treine o modelo:
+```bash
+python src/train.py
+```
+
+3️⃣ Faça a inferência:
+```bash
+python src/infer.py
+```
+
+4️⃣ Gere visualizações Grad-CAM:
+```bash
+python src/explain.py
+```
+
+---
+
+## 📊 Resultado Esperado
+Ao final, você terá:
+- **Modelo treinado** para segmentação.
+- **Máscaras preditas** em novas imagens.
+- **Visualizações interpretáveis** (Grad-CAM).
+- Histórico de treinamento registrado no **wandb**.
+
+---
+
+🔎 **Resumo Rápido**:  
+Este projeto demonstra um pipeline moderno de **Deep Learning aplicado a geoinformação**, com:
+- Treinamento de uma rede U-Net em imagens de satélite.
+- Avaliação quantitativa (métricas).
+- Visualização interpretável (Grad-CAM).
+- Registro de experimentos em tempo real.
+
+---
+
+Quer brilhar em processos seletivos?  
+👉 Este repositório mostra domínio de **ML aplicado**, **engenharia de dados** e **boas práticas de ciência de dados**.

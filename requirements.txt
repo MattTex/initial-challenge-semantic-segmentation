@@ -1,0 +1,11 @@
+earthengine-api
+xee
+rasterio
+fiona
+scikit-learn
+matplotlib
+folium
+geopandas
+torch
+torchvision
+segmentation-models-pytorch
