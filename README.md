@@ -114,7 +114,3 @@ Este projeto demonstra um pipeline moderno de **Deep Learning aplicado a geoinfo
 - Visualização interpretável (Grad-CAM).
 - Registro de experimentos em tempo real.
 
----
-
-Quer brilhar em processos seletivos?  
-👉 Este repositório mostra domínio de **ML aplicado**, **engenharia de dados** e **boas práticas de ciência de dados**.
